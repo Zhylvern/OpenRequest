@@ -5,7 +5,7 @@
   "description": "Logs outgoing POST requests locally with secure retention and export controls.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "openrequest@nonary.software",
+      "id": "openrequest@local",
       "data_collection_permissions": {
         "required": ["none"],
         "optional": []
