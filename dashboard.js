@@ -105,19 +105,18 @@ function formatHeadersPreview(headers, onViewAll) {
     more.className = "headers-more";
     more.textContent = `+${headers.length - previewCount} more`;
     wrapper.appendChild(more);
+    const viewBtn = document.createElement("button");
+    viewBtn.type = "button";
+    viewBtn.className = "headers-view";
+    viewBtn.textContent = "View all";
+    viewBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (typeof onViewAll === "function") {
+        onViewAll();
+      }
+    });
+    wrapper.appendChild(viewBtn);
   }
-
-  const viewBtn = document.createElement("button");
-  viewBtn.type = "button";
-  viewBtn.className = "headers-view";
-  viewBtn.textContent = "View all";
-  viewBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    if (typeof onViewAll === "function") {
-      onViewAll();
-    }
-  });
-  wrapper.appendChild(viewBtn);
   return wrapper;
 }
 
@@ -207,6 +206,19 @@ function formatBodyPreview(body, onViewAll) {
       container.appendChild(more);
     }
     wrapper.appendChild(container);
+    if (entries.length > previewCount) {
+      const viewBtn = document.createElement("button");
+      viewBtn.type = "button";
+      viewBtn.className = "headers-view";
+      viewBtn.textContent = "View all";
+      viewBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (typeof onViewAll === "function") {
+          onViewAll();
+        }
+      });
+      wrapper.appendChild(viewBtn);
+    }
   } else if ((body.type === "urlencoded" || body.type === "formData") && body.data) {
     const entries = Object.entries(body.data);
     const items = entries.slice(0, previewCount).map(([key, value]) => ({
@@ -221,24 +233,25 @@ function formatBodyPreview(body, onViewAll) {
       container.appendChild(more);
     }
     wrapper.appendChild(container);
+    if (entries.length > previewCount) {
+      const viewBtn = document.createElement("button");
+      viewBtn.type = "button";
+      viewBtn.className = "headers-view";
+      viewBtn.textContent = "View all";
+      viewBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (typeof onViewAll === "function") {
+          onViewAll();
+        }
+      });
+      wrapper.appendChild(viewBtn);
+    }
   } else {
     const pre = document.createElement("pre");
     pre.textContent = safeStringify(body);
     container.appendChild(pre);
     wrapper.appendChild(container);
   }
-
-  const viewBtn = document.createElement("button");
-  viewBtn.type = "button";
-  viewBtn.className = "headers-view";
-  viewBtn.textContent = "View all";
-  viewBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    if (typeof onViewAll === "function") {
-      onViewAll();
-    }
-  });
-  wrapper.appendChild(viewBtn);
   return wrapper;
 }
 
@@ -432,7 +445,34 @@ function renderLogs(logs) {
     domainCell.textContent = domain;
 
     const url = document.createElement("td");
-    url.textContent = urlValue;
+    url.className = "col-url";
+    const urlPreview = document.createElement("div");
+    urlPreview.className = "url-preview";
+    const urlText = document.createElement("div");
+    urlText.className = "url-text";
+    urlText.textContent = urlValue;
+    urlText.title = urlValue;
+    urlPreview.title = urlValue;
+    urlPreview.setAttribute("data-tooltip", urlValue);
+    url.title = urlValue;
+    urlPreview.appendChild(urlText);
+    urlText.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(urlValue);
+      } catch {
+        const helper = document.createElement("textarea");
+        helper.value = urlValue;
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+      }
+      urlText.classList.add("copied");
+      setTimeout(() => {
+        urlText.classList.remove("copied");
+      }, 1000);
+    });
+    url.appendChild(urlPreview);
 
     const headers = document.createElement("td");
     headers.appendChild(formatHeadersPreview(entry.headers, () => openHeadersModal(entry)));
