@@ -4,9 +4,16 @@ const clearBtn = document.getElementById("clearBtn");
 const searchInput = document.getElementById("searchInput");
 const totalCount = document.getElementById("totalCount");
 const latestCapture = document.getElementById("latestCapture");
+const detailModal = document.getElementById("detailModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalMeta = document.getElementById("modalMeta");
+const modalBody = document.getElementById("modalBody");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+const modalCard = detailModal ? detailModal.querySelector(".modal-card") : null;
 
 const MAX_DISPLAY_CHARS = 8000;
 let currentLogs = [];
+let lastFocusedElement = null;
 
 function safeStringify(value) {
   try {
@@ -74,6 +81,60 @@ function formatHeaders(headers) {
   }
 }
 
+function formatHeadersPreview(headers, onViewAll) {
+  if (!Array.isArray(headers) || headers.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "kv-list";
+    empty.textContent = "—";
+    return empty;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "headers-preview";
+
+  const previewCount = 4;
+  const items = headers.slice(0, previewCount).map((h) => ({
+    key: h.name || "header",
+    value: h.value || ""
+  }));
+  const list = createKvList(items);
+  wrapper.appendChild(list);
+
+  if (headers.length > previewCount) {
+    const more = document.createElement("div");
+    more.className = "headers-more";
+    more.textContent = `+${headers.length - previewCount} more`;
+    wrapper.appendChild(more);
+  }
+
+  const viewBtn = document.createElement("button");
+  viewBtn.type = "button";
+  viewBtn.className = "headers-view";
+  viewBtn.textContent = "View all";
+  viewBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (typeof onViewAll === "function") {
+      onViewAll();
+    }
+  });
+  wrapper.appendChild(viewBtn);
+  return wrapper;
+}
+
+function formatHeadersFull(headers) {
+  if (!Array.isArray(headers) || headers.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "kv-list";
+    empty.textContent = "—";
+    return empty;
+  }
+  const items = headers.map((h) => ({
+    key: h.name || "header",
+    value: h.value || ""
+  }));
+  return createKvList(items);
+}
+
 function formatBody(body) {
   try {
     if (!body) {
@@ -114,6 +175,112 @@ function formatBody(body) {
     empty.textContent = "—";
     return empty;
   }
+}
+
+function formatBodyPreview(body, onViewAll) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "body-preview";
+
+  if (!body) {
+    const empty = document.createElement("div");
+    empty.className = "kv-list";
+    empty.textContent = "—";
+    wrapper.appendChild(empty);
+    return wrapper;
+  }
+
+  const previewCount = 4;
+  const container = document.createElement("div");
+  container.appendChild(createBadge(body.type || "none"));
+
+  if (body.type === "json" && body.data && typeof body.data === "object") {
+    const entries = Object.entries(body.data);
+    const items = entries.slice(0, previewCount).map(([key, value]) => ({
+      key,
+      value: typeof value === "string" ? value : safeStringify(value)
+    }));
+    container.appendChild(createKvList(items));
+    if (entries.length > previewCount) {
+      const more = document.createElement("div");
+      more.className = "headers-more";
+      more.textContent = `+${entries.length - previewCount} more`;
+      container.appendChild(more);
+    }
+    wrapper.appendChild(container);
+  } else if ((body.type === "urlencoded" || body.type === "formData") && body.data) {
+    const entries = Object.entries(body.data);
+    const items = entries.slice(0, previewCount).map(([key, value]) => ({
+      key,
+      value: Array.isArray(value) ? value.join(", ") : String(value)
+    }));
+    container.appendChild(createKvList(items));
+    if (entries.length > previewCount) {
+      const more = document.createElement("div");
+      more.className = "headers-more";
+      more.textContent = `+${entries.length - previewCount} more`;
+      container.appendChild(more);
+    }
+    wrapper.appendChild(container);
+  } else {
+    const pre = document.createElement("pre");
+    pre.textContent = safeStringify(body);
+    container.appendChild(pre);
+    wrapper.appendChild(container);
+  }
+
+  const viewBtn = document.createElement("button");
+  viewBtn.type = "button";
+  viewBtn.className = "headers-view";
+  viewBtn.textContent = "View all";
+  viewBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (typeof onViewAll === "function") {
+      onViewAll();
+    }
+  });
+  wrapper.appendChild(viewBtn);
+  return wrapper;
+}
+
+function openModal(title, metaText, content) {
+  if (!detailModal || !modalTitle || !modalBody) return;
+  lastFocusedElement = document.activeElement;
+  modalTitle.textContent = title || "Details";
+  modalMeta.textContent = metaText || "";
+  modalBody.innerHTML = "";
+  if (content) {
+    modalBody.appendChild(content);
+  }
+  detailModal.classList.add("is-open");
+  detailModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  if (modalCard) {
+    modalCard.focus();
+  }
+}
+
+function closeModal() {
+  if (!detailModal) return;
+  detailModal.classList.remove("is-open");
+  detailModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+    lastFocusedElement.focus();
+  }
+}
+
+function openHeadersModal(entry) {
+  const method = entry.method || "";
+  const url = entry.url || "";
+  const metaText = `${method} ${url}`.trim();
+  openModal("Headers", metaText, formatHeadersFull(entry.headers));
+}
+
+function openBodyModal(entry) {
+  const method = entry.method || "";
+  const url = entry.url || "";
+  const metaText = `${method} ${url}`.trim();
+  openModal("Body", metaText, formatBody(entry.body));
 }
 
 function getHeaderValue(headers, name) {
@@ -268,10 +435,10 @@ function renderLogs(logs) {
     url.textContent = urlValue;
 
     const headers = document.createElement("td");
-    headers.appendChild(formatHeaders(entry.headers));
+    headers.appendChild(formatHeadersPreview(entry.headers, () => openHeadersModal(entry)));
 
     const body = document.createElement("td");
-    body.appendChild(formatBody(entry.body));
+    body.appendChild(formatBodyPreview(entry.body, () => openBodyModal(entry)));
 
     const actions = document.createElement("td");
     const copyBtn = document.createElement("button");
@@ -339,6 +506,27 @@ clearBtn.addEventListener("click", async () => {
 
 searchInput.addEventListener("input", () => {
   applyFilter();
+});
+
+if (detailModal) {
+  detailModal.addEventListener("click", (event) => {
+    const target = event.target;
+    if (target && target.dataset && target.dataset.close === "true") {
+      closeModal();
+    }
+  });
+}
+
+if (modalCloseBtn) {
+  modalCloseBtn.addEventListener("click", () => {
+    closeModal();
+  });
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && detailModal && detailModal.classList.contains("is-open")) {
+    closeModal();
+  }
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
