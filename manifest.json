@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "OpenRequest",
+  "version": "1.0.0",
+  "description": "Logs outgoing POST requests locally with secure retention and export controls.",
+  "permissions": ["webRequest", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module",
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_title": "OpenRequest",
+    "default_popup": "popup.html"
+  }
+}
