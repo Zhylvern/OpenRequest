@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenRequest Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="brand">
+        <img src="assets/logo.png" alt="OpenRequest" class="brand-logo" />
+        <div>
+          <h1>Request Dashboard</h1>
+          <p>Full inspection view for outbound POST requests.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <input id="searchInput" type="search" placeholder="Filter by URL, host, method" />
+        <button id="exportBtn" class="primary" type="button">Export JSON</button>
+        <button id="clearBtn" class="danger" type="button">Clear Logs</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="summary">
+        <div class="summary-card">
+          <span class="label">Total Logs</span>
+          <span id="totalCount" class="value">0</span>
+        </div>
+        <div class="summary-card">
+          <span class="label">Latest Capture</span>
+          <span id="latestCapture" class="value">—</span>
+        </div>
+      </div>
+
+      <section class="table-wrap">
+        <table aria-label="Full POST request logs">
+          <thead>
+            <tr>
+              <th style="width: 13%">Timestamp</th>
+              <th style="width: 6%">Method</th>
+              <th style="width: 11%">Domain</th>
+              <th style="width: 22%">URL</th>
+              <th style="width: 14%">Warnings</th>
+              <th style="width: 18%">Headers</th>
+              <th style="width: 16%">Body</th>
+              <th style="width: 6%">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="logBody">
+            <tr>
+              <td class="empty" colspan="8">No logs captured yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

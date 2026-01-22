@@ -8,6 +8,7 @@ OpenRequest is a security-first Chrome extension that logs outgoing POST request
 - Stores data locally in `chrome.storage.local` (no network calls)
 - Enforces bounded retention (oldest entries discarded)
 - Provides export to JSON and immediate clear
+- Summary view in the popup with a full inspection dashboard
 
 ## Install (Unpacked)
 ### Chromium-based (Chrome, Edge, Brave)
@@ -22,8 +23,11 @@ After editing files, reload the extension from `chrome://extensions`.
 ## Project Structure
 - `manifest.json` — extension manifest (MV3)
 - `background.js` — webRequest capture, parsing, storage, retention
-- `popup.html` — popup UI
-- `popup.js` — popup rendering, export, clear
+- `popup.html` — popup summary UI
+- `popup.js` — popup rendering, export, clear, dashboard link
+- `dashboard.html` — full request dashboard
+- `dashboard.css` — dashboard styles
+- `dashboard.js` — dashboard rendering, filtering, export, clear
 - `assets/` — logo assets (`assets/logo.png`, `assets/logo-512w.png`)
 - `icons/` — extension icons (`icons/icon-16.png`, `icons/icon-32.png`, `icons/icon-48.png`, `icons/icon-128.png`)
 

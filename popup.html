@@ -16,7 +16,6 @@
         --muted: #cbd5f5;
         --border: #1f2a44;
         --danger: #ef4444;
-        --success: #22c55e;
         --shadow: 0 18px 45px rgba(2, 6, 23, 0.25);
       }
 
@@ -150,15 +149,51 @@
         table-layout: fixed;
       }
 
-      td pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-break: break-word;
+      .row-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .row-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        background: rgba(37, 99, 235, 0.18);
+        color: #bfdbfe;
+      }
+
+      .badge.muted {
+        background: rgba(148, 163, 184, 0.18);
+        color: #e2e8f0;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .mono {
         font-family: "JetBrains Mono", "Fira Code", monospace;
         font-size: 11px;
+      }
+
+      .path {
         color: #e2e8f0;
-        max-height: 120px;
-        overflow-y: auto;
+        word-break: break-word;
       }
 
       .empty {
@@ -192,24 +227,21 @@
     <section class="panel" aria-live="polite">
       <div class="controls">
         <button class="primary" id="exportBtn" type="button">Export JSON</button>
+        <button class="secondary" id="dashboardBtn" type="button">Open Dashboard</button>
         <button class="danger" id="clearBtn" type="button">Clear Logs</button>
         <span class="count" id="countLabel">0 entries</span>
       </div>
 
       <div class="table-wrap">
-        <table aria-label="POST request logs">
+        <table aria-label="POST request logs summary">
           <thead>
             <tr>
-              <th style="width: 20%">Timestamp</th>
-              <th style="width: 10%">Method</th>
-              <th style="width: 30%">URL</th>
-              <th style="width: 20%">Headers</th>
-              <th style="width: 20%">Body</th>
+              <th style="width: 100%">Request Summary</th>
             </tr>
           </thead>
           <tbody id="logBody">
             <tr>
-              <td class="empty" colspan="5">No logs captured yet.</td>
+              <td class="empty" colspan="1">No logs captured yet.</td>
             </tr>
           </tbody>
         </table>

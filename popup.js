@@ -1,24 +1,31 @@
 const logBody = document.getElementById("logBody");
 const exportBtn = document.getElementById("exportBtn");
 const clearBtn = document.getElementById("clearBtn");
+const dashboardBtn = document.getElementById("dashboardBtn");
 const countLabel = document.getElementById("countLabel");
-
-const MAX_DISPLAY_CHARS = 4000;
-
-function safeStringify(value) {
-  try {
-    const json = JSON.stringify(value, null, 2);
-    if (json.length > MAX_DISPLAY_CHARS) {
-      return `${json.slice(0, MAX_DISPLAY_CHARS)}\n…truncated…`;
-    }
-    return json;
-  } catch {
-    return "";
-  }
-}
 
 function setCount(count) {
   countLabel.textContent = `${count} entr${count === 1 ? "y" : "ies"}`;
+}
+
+function formatTimestamp(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString();
+}
+
+function toSummary(entry) {
+  try {
+    const url = new URL(entry.url || "");
+    const host = url.hostname || "";
+    const path = `${url.pathname || ""}${url.search || ""}` || "";
+    const bodyType = entry.body && entry.body.type ? entry.body.type : "none";
+    const headerCount = Array.isArray(entry.headers) ? entry.headers.length : 0;
+    return { host, path, bodyType, headerCount };
+  } catch {
+    return { host: "", path: entry.url || "", bodyType: "", headerCount: 0 };
+  }
 }
 
 function renderLogs(logs) {
@@ -27,7 +34,7 @@ function renderLogs(logs) {
   if (!Array.isArray(logs) || logs.length === 0) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 5;
+    cell.colSpan = 1;
     cell.className = "empty";
     cell.textContent = "No logs captured yet.";
     row.appendChild(cell);
@@ -38,31 +45,51 @@ function renderLogs(logs) {
 
   for (const entry of logs.slice().reverse()) {
     const row = document.createElement("tr");
+    const summary = toSummary(entry);
 
-    const ts = document.createElement("td");
-    ts.textContent = entry.timestamp || "";
+    const cell = document.createElement("td");
 
-    const method = document.createElement("td");
-    method.textContent = entry.method || "";
+    const wrap = document.createElement("div");
+    wrap.className = "row-wrap";
 
-    const url = document.createElement("td");
-    url.textContent = entry.url || "";
+    const top = document.createElement("div");
+    top.className = "row-top";
 
-    const headers = document.createElement("td");
-    const headersPre = document.createElement("pre");
-    headersPre.textContent = safeStringify(entry.headers || []);
-    headers.appendChild(headersPre);
+    const methodBadge = document.createElement("span");
+    methodBadge.className = "badge";
+    methodBadge.textContent = entry.method || "POST";
 
-    const body = document.createElement("td");
-    const bodyPre = document.createElement("pre");
-    bodyPre.textContent = safeStringify(entry.body || null);
-    body.appendChild(bodyPre);
+    const typeBadge = document.createElement("span");
+    typeBadge.className = "badge muted";
+    typeBadge.textContent = summary.bodyType || "body";
 
-    row.appendChild(ts);
-    row.appendChild(method);
-    row.appendChild(url);
-    row.appendChild(headers);
-    row.appendChild(body);
+    const ts = document.createElement("span");
+    ts.className = "meta";
+    ts.textContent = formatTimestamp(entry.timestamp);
+
+    top.appendChild(methodBadge);
+    top.appendChild(typeBadge);
+    top.appendChild(ts);
+
+    const host = document.createElement("div");
+    host.className = "mono";
+    host.textContent = summary.host || "—";
+
+    const path = document.createElement("div");
+    path.className = "mono path";
+    path.textContent = summary.path || "—";
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = `${summary.headerCount} headers`;
+
+    wrap.appendChild(top);
+    wrap.appendChild(host);
+    wrap.appendChild(path);
+    wrap.appendChild(meta);
+
+    cell.appendChild(wrap);
+    row.appendChild(cell);
     logBody.appendChild(row);
   }
 
@@ -89,11 +116,16 @@ exportBtn.addEventListener("click", async () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `post-request-logs-${Date.now()}.json`;
+  link.download = `openrequest-logs-${Date.now()}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+});
+
+dashboardBtn.addEventListener("click", () => {
+  const url = chrome.runtime.getURL("dashboard.html");
+  chrome.tabs.create({ url });
 });
 
 clearBtn.addEventListener("click", async () => {
