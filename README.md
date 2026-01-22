@@ -24,8 +24,8 @@ After editing files, reload the extension from `chrome://extensions`.
 - `background.js` — webRequest capture, parsing, storage, retention
 - `popup.html` — popup UI
 - `popup.js` — popup rendering, export, clear
-- `assets/` — shared static assets (logos)
-- `icons/` — extension icons
+- `assets/` — logo assets (`assets/logo.png`, `assets/logo-512w.png`)
+- `icons/` — extension icons (`icons/icon-16.png`, `icons/icon-32.png`, `icons/icon-48.png`, `icons/icon-128.png`)
 
 ## Privacy
 - All data stays on your machine.
