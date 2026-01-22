@@ -3,11 +3,18 @@
   "name": "OpenRequest",
   "version": "1.0.0",
   "description": "Logs outgoing POST requests locally with secure retention and export controls.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "openrequest@local",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": []
+      }
+    }
+  },
   "permissions": ["webRequest", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "background.js",
-    "type": "module",
     "scripts": ["background.js"]
   },
   "action": {
